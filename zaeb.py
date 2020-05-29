@@ -6,23 +6,21 @@ from PIL import ImageGrab
 
 template = cv2.imread('screenshots/Red_square_marker.jpg', cv2.IMREAD_COLOR)
 w, h = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY).shape[::-1]
-templateColor = [0, 0, 170]
+templateColor = template[int(w/2), int(h/2)] #picking central pixel color from template
 
 def templating(original_img):
     grey_img = cv2.cvtColor(original_img, cv2.COLOR_BGR2GRAY)
 
     res = cv2.matchTemplate(grey_img, cv2.cvtColor(template, cv2.COLOR_BGR2GRAY), cv2.TM_CCOEFF_NORMED)
-    loc = np.where( res >= 0.7)
+    loc = np.where( res >= 0.75)
     loc_n = list(zip(*loc[::-1]))
-    print(loc_n)
-    for pt in loc_n:
-        # print(original_img[loc_n[0][1], loc_n[0][0]])
-        print(original_img[pt[1], pt[0]])
-        if original_img[pt[1], pt[0]][2] == templateColor[2]:
 
-            # if original_img[loc_n[0][1], loc_n[0][0]][2] == templateColor[2]:
-            #     print("YEP COCK")
-            cv2.rectangle(original_img, (pt[1], pt[0]), (pt[1] + w, pt[0] + h), (204, 40, 142), 2)
+    for pt in loc_n:
+        # cv2.rectangle(original_img, (pt[0]+int(w/2), pt[1]+int(h/2)), (pt[0]+int(w/2) + 1, pt[1]+int(h/2) + 1), (204, 40, 142), 2) #centre of the template
+        if set(original_img[pt[1]+int(w/2), pt[0]+int(h/2)]) == set(templateColor):
+            cv2.rectangle(original_img, pt, (pt[0] + w, pt[1] + h), (204, 40, 142), 2)
+            cv2.putText(original_img,'X: %d | Y: %d' % (pt[0], pt[1]) , (pt[0]+w+5, pt[1]+int(h/2)+4), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (58, 222, 130), 1)
+            #                                                                                   ^^^ centralising the text by Y
 
 
 last_time = time.time()
@@ -36,7 +34,6 @@ while True:
 
     templating(screen)
 
-    # cv2.imshow('Original screen', cv2.cvtColor(screen, cv2.COLOR_BGR2RGB))
     cv2.imshow('template', template)
     cv2.imshow('output', cv2.cvtColor(screen, cv2.COLOR_BGR2RGB))
 
